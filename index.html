@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Countdown</title>
+    <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+
+    <!-- Import Roboto Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      /* Apply Roboto font and center text */
+      body {
+        text-align: center;
+        font-family: "Roboto", sans-serif;
+        background: url('https://i.imgur.com/jsnaNVJ.png') no-repeat center center fixed;
+        background-size: cover;
+        height: 100vh;
+        overflow: hidden;
+      }
+      h1,
+      h2 {
+        color: #ffffff;
+        font-family: "Roboto", sans-serif;
+      }
+      .countdown-container {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column; /* Stack vertically */
+        justify-content: center;
+        align-items: center;
+        width: 90%;
+        margin: 0 auto;
+        margin-top: -10px;
+      }
+
+      @media (max-width: 768px) {
+        .countdown-container {
+          flex-direction: row; /* Stack them vertically */
+        }
+        .countdown-iframe,
+        .countdown-image {
+          width: 100%; /* Make both full width */
+        }
+      }
+      .flipdown {
+        overflow: hidden !important;
+      }
+      .header {
+        background: linear-gradient(90deg, #000096 60%, #000 100%);
+        padding: 8px 40px;
+        display: flex;
+        width: 100%;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 32px;
+      }
+      .logo {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        padding: 6px;
+        margin-right: 0;
+      }
+      .logo-uber {
+        width: 80px;
+        height: 80px;
+        object-fit: fill;
+        border-radius: 12px;
+        margin-right: 0;
+      }
+      .header-logos {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .header-center {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .header-title {
+        color: #99ff0a;
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin: 0;
+        text-align: center;
+      }
+      .header-date {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 400;
+        margin: 0;
+        text-align: right;
+      }
+      /* Button Styling */
+      .toggle-button {
+        cursor: pointer;
+        transition: 0.3s;
+        background-color: transparent;
+        border: none;
+        font-size: 16px;
+        color: #000096;
+        padding: 5px;
+      }
+      .toggle-button:hover {
+        background-color: green;
+        padding: 5px;
+        border-radius: 8px;
+      }
+      /* Shrek Fullscreen Overlay */
+      .shrek-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .shrek-image {
+        max-width: 50%;
+        max-height: 80%;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+
+      /* Close Button */
+      .close-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 24px;
+        color: white;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2001;
+      }
+
+      .close-button:hover {
+        color: red;
+      }
+
+      /* Fade-in animation */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .team-members {
+        list-style-type: disc;
+        text-align: left;
+        margin-top: 10px;
+        font-size: 16px;
+        color: #fff;
+      }
+
+      /* Team Container */
+      .dev-teams {
+        padding: 10px;
+        background-color: #99ff0a;
+        opacity: 0.8;
+        color: #000096;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20px;
+        margin-bottom: 10px;
+      }
+
+      /* Team List Layout */
+      .dev-list {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap; /* Ensures wrapping for smaller screens */
+        gap: 20px;
+        padding: 0;
+        list-style: none;
+        border-radius: 8px;
+      }
+
+      /* Individual Team Boxes */
+      .dev-list li {
+        font-size: 18px;
+        background-color: white;
+        color: #99ff0a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-width: 200px;
+        text-align: center;
+        max-width: 400px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      /* Team Name Styling */
+      .team-name {
+        background-color: #000096; /* Dark blue background */
+        color: white; /* White text */
+        width: 100%;
+        opacity: 1;
+        z-index: 100;
+        padding: 10px;
+        font-weight: bold;
+        font-size: 20px;
+      }
+
+      /* Team Members List */
+      .team-members {
+        list-style-type: none; /* Remove bullet points */
+        padding: 10px 0;
+        width: 100%;
+        padding: 10px;
+        margin: 0;
+        text-align: center;
+      }
+
+      /* Member Names with Dividers */
+      .team-members li {
+        font-size: 16px;
+        color: #000096;
+        padding: 8px 0;
+        border-bottom: 1px solid #000096;
+        border-radius: 0px;
+      }
+
+      /* Remove Divider from Last Member */
+      .team-members li:last-child {
+        border-bottom: none;
+      }
+
+      .shrek-center-button {
+        position: absolute;
+        top: 46%;
+        right: 37%;
+        z-index: 100;
+        padding: 0;
+        font-size: 40px;
+        border: none;
+        background-color: transparent;
+        cursor: pointer;
+      }
+      .shrek-center-button:hover, .shrek-center-button:focus {
+        background: #99ff0a;
+      }
+
+      .flipdown.flipdown__theme-dark .rotor,
+      .flipdown.flipdown__theme-dark .rotor-top,
+      .flipdown.flipdown__theme-dark .rotor-leaf-front,
+      .flipdown.flipdown__theme-dark .rotor-bottom,
+      .flipdown.flipdown__theme-dark .rotor-leaf-rear {
+        color: #99ff0a !important;
+        background-color: rgba(0,0,150,0.5) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      }
+
+      .flipdown.flipdown__theme-dark .rotor-group-heading:before {
+        color: white !important;
+        text-shadow: 1px 1px 6px #000, 0 0 2px #000096;
+      }
+    </style>
+  </head>
+  <!-- Header Text -->
+  <header class="header">
+    <div class="header-logos">
+      <img
+        class="logo"
+        src="https://www.bppulse.co.uk/spinner.png?w=828&fm=webp"
+        alt="bp pulse logo"
+      />
+      <img
+        class="logo-uber"
+        src="https://mobile-content.uber.com/launch-experience/ride.png"
+        alt="Uber logo"
+      />
+    </div>
+    <div class="header-center">
+      <h1 class="header-title">Customer Migration/Uber Go Live</h1>
+    </div>
+    <h2 class="header-date">24th June 2025 - 3pm UK</h2>
+  </header>
+  <body>
+    <!-- Countdown Timer -->
+    <div class="countdown-container" style="margin-top: 10px;">
+      <iframe
+        srcdoc="
+        <head>
+            <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+            <title>Countdown Clock</title>
+            <link href='https://web.logwork.com/cores/229/tpl/main/widget/countdown/css/flip.css' id='stylesheet' rel='stylesheet'>
+            <link href='https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap' rel='stylesheet'>
+            <style>
+                body { font-family: 'Roboto', sans-serif; padding: 0; margin: 0; text-align: center; overflow: hidden; margin-top: 0px; }
+                .text { color: white; font-size: 24px; font-weight: bold; font-family: 'Roboto', sans-serif; }
+                .flipdown.flipdown__theme-dark .rotor,
+                .flipdown.flipdown__theme-dark .rotor-top,
+                .flipdown.flipdown__theme-dark .rotor-leaf-front,
+                .flipdown.flipdown__theme-dark .rotor-bottom,
+                .flipdown.flipdown__theme-dark .rotor-leaf-rear {
+                    color: #99ff0a !important;
+                    background-color: rgba(0,0,150,0.5) !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+                }
+                .flipdown.flipdown__theme-dark .rotor-group-heading:before {
+                    color: white !important;
+                    text-shadow: 1px 1px 6px #000096, 0 0 2px #99ff0a;
+                }
+                .days-before::before, .hours-before::before, .minutes-before::before, .seconds-before::before {
+                    display: inline-block !important;
+                    content: attr(data-before);
+                    font-size: 1.9vw;
+                    font-weight: 400
+                    color: #000096 !important;
+                }
+                .light-theme { color: #99ff0a; }
+            </style>
+            <script src='https://web.logwork.com/cores/229/tpl/main/widget/countdown/js/flipdown.js'></script>
+        </head>
+        <body>
+            <div id='js_countdown' style='height:26vw;'>
+                <div id='countdown'>
+                    <div id='flipdown' class='flipdown'></div>
+                </div>
+            </div>
+            <input type='hidden' id='js_style' value='flip' />
+            <input type='hidden' id='js_language' value='en' />
+            <input type='hidden' id='js_date' value='1750978800' />
+            <input type='hidden' id='js_tz' value='Europe/London' />
+            <input type='hidden' id='js_uid' value='1' />
+            <script type='text/javascript'>
+                function downloadJSAtOnload(){
+                    var element = document.createElement('script');
+                    element.src = 'https://web.logwork.com/cores/229/tpl/main/widget/countdown/js/js.js';
+                    document.body.appendChild(element);
+                }
+                if (window.addEventListener) window.addEventListener('load', downloadJSAtOnload, false);
+                else if (window.attachEvent) window.attachEvent('onload', downloadJSAtOnload);
+                else window.onload = downloadJSAtOnload;
+            </script>
+        </body>"
+        title="Countdown timer"
+        style="
+          border: transparent;
+          width: 100%;
+          height: 380px;
+          overflow: hidden;
+        "
+      ></iframe>
+
+      <!-- Embedded Image from Imgur -->
+      <!-- <div>
+        <img src="https://i.imgur.com/pmaqqQGl.jpg" style="width: 100%" />
+      </div>
+    </div> -->
+    <br />
+
+    <!-- Shrek Button Centered -->
+    <!-- <button class="shrek-center-button" onclick="toggleShrek()" aria-label="Shrek Easter Egg">🧑</button> -->
+    <br />
+
+    <!-- Development Teams Section -->
+    <div class="dev-teams">
+      <h3 style="padding: 20px">
+        Thank you to our long-standing development, product and solutioning
+        teams who have worked tirelessly to make the project a success 🎉
+      </h3>
+      <ul class="dev-list">
+        <li>
+          <div class="team-name">🇬🇧 UK Business</div>
+        </li>
+        <li>
+          <div class="team-name">🛠️ P&amp;T</div>
+        </li>
+        <li>
+          <div class="team-name">👥 Customer Team</div>
+        </li>
+        <li>
+          <div class="team-name">📞 Customer Care</div>
+        </li>
+        <li>
+          <div class="team-name">💼 Commercial Team</div>
+        </li>
+        <li>
+          <div class="team-name">📊 D&amp;A</div>
+        </li>
+        <li>
+          <div class="team-name">🖥️ Tech Support</div>
+        </li>
+        <li>
+          <div class="team-name">⚖️ Legal &amp; Privacy</div>
+        </li>
+        <li>
+          <div class="team-name">☁️ Salesforce</div>
+        </li>
+        <li>
+          <div class="team-name">📇 CRM</div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Shrek Fullscreen Overlay -->
+    <!-- <div id="shrekOverlay" class="shrek-overlay">
+      <button class="close-button" onclick="toggleShrek()">✖</button>
+      <img
+        class="shrek-image"
+        src="https://pngimg.com/uploads/shrek/shrek_PNG16.png"
+        alt="Shrek"
+      />
+    </div>
+
+    <script>
+      function toggleShrek() {
+        var overlay = document.getElementById("shrekOverlay");
+        if (overlay.style.display === "none" || overlay.style.display === "") {
+          overlay.style.display = "flex";
+        } else {
+          overlay.style.display = "none";
+        }
+      }
+    </script> -->
+  </body>
+</html>
